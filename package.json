@@ -32,7 +32,9 @@
       "target": [
         { "target": "nsis", "arch": ["x64"] }
       ],
-      "icon": "icon.ico"
+      "icon": "icon.ico",
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
