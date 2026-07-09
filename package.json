@@ -1,0 +1,46 @@
+{
+  "name": "tarjiman-desktop",
+  "version": "1.0.0",
+  "description": "Tarjiman Desktop - Live floating audio translation overlay for Windows",
+  "main": "main.js",
+  "author": "Omran",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  },
+  "build": {
+    "appId": "com.omran.tarjimandesktop",
+    "productName": "Tarjiman Desktop",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "overlay.html",
+      "renderer.js",
+      "icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tarjiman Desktop"
+    }
+  }
+}
