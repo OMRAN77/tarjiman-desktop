@@ -22,6 +22,11 @@ btnClickThrough.addEventListener('click', () => {
   window.tarjiman.sendControl('toggle-click-through');
 });
 
+const btnResetPos = document.getElementById('btnResetPos');
+btnResetPos.addEventListener('click', () => {
+  window.tarjiman.resetOverlayPosition();
+});
+
 const debugBox = document.getElementById('debugBox');
 let debugLines = [];
 

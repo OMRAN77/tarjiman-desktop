@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('tarjiman', {
 
   // Overlay window -> control window status updates
   sendStatus: (status) => ipcRenderer.send('overlay-status', status),
-  onStatus: (cb) => ipcRenderer.on('control-status-update', (e, status) => cb(status))
+  onStatus: (cb) => ipcRenderer.on('control-status-update', (e, status) => cb(status)),
+
+  // Safety net: reset the overlay window back to its default on-screen position/size.
+  resetOverlayPosition: () => ipcRenderer.send('reset-overlay-position')
 });

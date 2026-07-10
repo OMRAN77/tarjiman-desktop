@@ -71,7 +71,11 @@ async function sendChunk(blob, mimeType){
     }
     if(data.original && data.translated){
       setCaption(data.translated);
-      reportDebug('نص: "' + data.original + '" ← "' + data.translated + '"');
+      if(data.translationError){
+        reportDebug('⚠️ فشلت الترجمة، ويُعرض النص الأصلي بدون ترجمة: "' + data.original + '" — السبب: ' + data.translationError);
+      } else {
+        reportDebug('نص: "' + data.original + '" ← "' + data.translated + '"');
+      }
     } else {
       reportDebug('لم يُكتشف كلام في هذا المقطع (حجم الصوت: ' + blob.size + ' بايت)');
     }

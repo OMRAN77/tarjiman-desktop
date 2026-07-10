@@ -9,18 +9,42 @@ let tray = null;
 let clickThrough = false;
 let isQuitting = false;
 
-function createOverlay() {
-  const saved = store.get('winBounds');
+function getDefaultBounds() {
   const primary = screen.getPrimaryDisplay();
-  const defaultBounds = {
+  return {
     x: Math.round(primary.bounds.x + primary.bounds.width / 2 - 300),
     y: Math.round(primary.bounds.y + primary.bounds.height - 160),
     width: 600,
     height: 90
   };
+}
+
+// A saved position is only trusted if it actually falls within the visible
+// area of one of the CURRENTLY connected displays. This prevents the overlay
+// from opening off-screen (e.g. after unplugging a second monitor, or after
+// a corrupted save) with no way for the user to find it again.
+function boundsAreOnScreen(bounds) {
+  if (!bounds || typeof bounds.x !== 'number' || typeof bounds.y !== 'number') return false;
+  const displays = screen.getAllDisplays();
+  const margin = 20; // require a visible sliver, not just a 1px corner
+  return displays.some((d) => {
+    const b = d.bounds;
+    return (
+      bounds.x + margin < b.x + b.width &&
+      bounds.x + (bounds.width || 0) - margin > b.x &&
+      bounds.y + margin < b.y + b.height &&
+      bounds.y + (bounds.height || 0) - margin > b.y
+    );
+  });
+}
+
+function createOverlay() {
+  const saved = store.get('winBounds');
+  const defaultBounds = getDefaultBounds();
+  const safeBounds = boundsAreOnScreen(saved) ? saved : defaultBounds;
 
   overlayWin = new BrowserWindow({
-    ...(saved || defaultBounds),
+    ...safeBounds,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
