@@ -5,7 +5,7 @@ const captionText = document.getElementById('captionText');
 
 let isListening = false;
 let sysStream = null;
-let targetLangValue = 'en';
+let targetLangValue = 'ar';
 
 function getGuestId(){
   let id = localStorage.getItem('tarjimanDesktopGuestId');
