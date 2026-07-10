@@ -46,6 +46,12 @@ function setCaption(txt){
   }
 }
 
+function reportDebug(info){
+  if(window.tarjiman && window.tarjiman.sendStatus){
+    window.tarjiman.sendStatus({ debug: info });
+  }
+}
+
 async function sendChunk(blob, mimeType){
   try {
     const audioBase64 = await blobToBase64(blob);
@@ -59,11 +65,19 @@ async function sendChunk(blob, mimeType){
       }),
     });
     const data = await res.json().catch(() => null);
-    if(!res.ok || !data) return;
+    if(!res.ok || !data){
+      reportDebug('خطأ HTTP ' + res.status + ' — ' + (data && data.error ? data.error : 'لا يوجد رد'));
+      return;
+    }
     if(data.original && data.translated){
       setCaption(data.translated);
+      reportDebug('نص: "' + data.original + '" ← "' + data.translated + '"');
+    } else {
+      reportDebug('لم يُكتشف كلام في هذا المقطع (حجم الصوت: ' + blob.size + ' بايت)');
     }
-  } catch(e){ /* network hiccup, keep going */ }
+  } catch(e){
+    reportDebug('خطأ شبكة: ' + (e && e.message ? e.message : e));
+  }
 }
 
 function recordOneChunk(){
@@ -81,7 +95,13 @@ function recordOneChunk(){
   mediaRecorder.onstop = () => {
     if(chunks.length){
       const blob = new Blob(chunks, { type: mediaRecorder.mimeType || mimeType || 'audio/webm' });
-      if(blob.size > 800) sendChunk(blob, mediaRecorder.mimeType || mimeType);
+      if(blob.size > 800){
+        sendChunk(blob, mediaRecorder.mimeType || mimeType);
+      } else {
+        reportDebug('مقطع صوتي فارغ جدًا (حجم: ' + blob.size + ' بايت) — لا يوجد صوت نظام يُلتقط');
+      }
+    } else {
+      reportDebug('لم يتم تسجيل أي بيانات صوت في هذا المقطع');
     }
     if(isListening) recordOneChunk();
   };
