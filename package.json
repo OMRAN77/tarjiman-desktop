@@ -1,6 +1,6 @@
 {
   "name": "tarjiman-desktop",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Tarjiman Desktop - Live floating audio translation overlay for Windows",
   "main": "main.js",
   "author": "Omran",

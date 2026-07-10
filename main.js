@@ -8,6 +8,7 @@ let controlWin = null;
 let tray = null;
 let clickThrough = false;
 let isQuitting = false;
+let overlayWatchdog = null;
 
 function getDefaultBounds() {
   const primary = screen.getPrimaryDisplay();
@@ -54,6 +55,10 @@ function createOverlay() {
     fullscreenable: false,
     hasShadow: false,
     skipTaskbar: true,
+    // 'toolbar' windows are excluded from Windows' "Show Desktop" / Win+D
+    // minimize-all action, so the overlay keeps floating even when the
+    // user minimizes every other window.
+    type: process.platform === 'win32' ? 'toolbar' : undefined,
     backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -72,7 +77,24 @@ function createOverlay() {
   overlayWin.on('move', saveBounds);
   overlayWin.on('resize', saveBounds);
 
+  // Safety net: if Windows (or a driver quirk) ever minimizes/hides the
+  // overlay behind the scenes, immediately bring it back so it never
+  // disappears while the user thinks translation is still running.
+  overlayWin.on('minimize', () => { if (overlayWin) overlayWin.restore(); });
+  overlayWin.on('hide', () => {
+    if (overlayWin && !isQuitting) overlayWin.show();
+  });
+
   overlayWin.on('closed', () => { overlayWin = null; });
+
+  // Periodically reassert always-on-top + visibility. Cheap insurance
+  // against GPU/driver quirks or other apps stealing the top-most spot.
+  if (overlayWatchdog) clearInterval(overlayWatchdog);
+  overlayWatchdog = setInterval(() => {
+    if (!overlayWin) return;
+    overlayWin.setAlwaysOnTop(true, 'screen-saver');
+    if (!overlayWin.isVisible() && !isQuitting) overlayWin.showInactive();
+  }, 3000);
 }
 
 function createControlWindow() {
