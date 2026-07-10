@@ -18,6 +18,7 @@
   },
   "build": {
     "appId": "com.omran.tarjimandesktop",
+    "publish": null,
     "productName": "Tarjiman Desktop",
     "asar": true,
     "files": [
