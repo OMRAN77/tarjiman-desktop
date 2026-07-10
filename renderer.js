@@ -1,5 +1,5 @@
 const API_URL = 'https://tarjiman-live.vercel.app/api/caption';
-const CHUNK_MS = 1800;
+const CHUNK_MS = 3500;
 
 const captionText = document.getElementById('captionText');
 
