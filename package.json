@@ -26,6 +26,8 @@
       "preload.js",
       "overlay.html",
       "renderer.js",
+      "control.html",
+      "control.js",
       "icon.ico",
       "package.json"
     ],

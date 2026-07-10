@@ -10,34 +10,16 @@
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
     user-select: none;
   }
-  #bar {
-    -webkit-app-region: drag;
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px;
-    padding: 4px 10px;
-    background: rgba(0,0,0,0.001); /* invisible but still a drag surface */
-    height: 22px;
-  }
-  #bar button {
-    -webkit-app-region: no-drag;
-    background: rgba(20,20,20,0.55);
-    color: #fff; border: none; border-radius: 6px;
-    padding: 2px 8px; font-size: 12px; cursor: pointer;
-  }
-  #bar button.active { background: #1f9d55; }
-  #bar select {
-    -webkit-app-region: no-drag;
-    background: rgba(20,20,20,0.55); color: #fff; border: none;
-    border-radius: 6px; font-size: 11px; padding: 2px 4px;
-  }
   #captionBox {
     -webkit-app-region: drag;
+    width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center;
-    min-height: 46px;
     padding: 6px 18px;
     text-align: center;
+    box-sizing: border-box;
   }
   #captionText {
+    -webkit-app-region: no-drag;
     color: #fff;
     font-size: 22px;
     font-weight: 700;
@@ -49,20 +31,6 @@
 </style>
 </head>
 <body>
-  <div id="bar">
-    <button id="btnToggle">▶️ ابدأ</button>
-    <select id="targetLang">
-      <option value="ar">AR عربي</option>
-      <option value="en" selected>EN English</option>
-      <option value="fr">FR</option>
-      <option value="es">ES</option>
-      <option value="tr">TR</option>
-      <option value="ur">UR</option>
-      <option value="hi">HI</option>
-      <option value="fa">FA</option>
-    </select>
-    <button id="btnClickThrough">🖱️ تجاوز</button>
-  </div>
   <div id="captionBox">
     <div id="captionText" class="empty">…</div>
   </div>

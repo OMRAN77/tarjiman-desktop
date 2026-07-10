@@ -4,8 +4,10 @@ const Store = require('electron-store');
 
 const store = new Store();
 let overlayWin = null;
+let controlWin = null;
 let tray = null;
 let clickThrough = false;
+let isQuitting = false;
 
 function createOverlay() {
   const saved = store.get('winBounds');
@@ -27,7 +29,7 @@ function createOverlay() {
     maximizable: false,
     fullscreenable: false,
     hasShadow: false,
-    skipTaskbar: false,
+    skipTaskbar: true,
     backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -49,6 +51,35 @@ function createOverlay() {
   overlayWin.on('closed', () => { overlayWin = null; });
 }
 
+function createControlWindow() {
+  if (controlWin) { controlWin.show(); controlWin.focus(); return; }
+
+  controlWin = new BrowserWindow({
+    width: 460,
+    height: 320,
+    resizable: true,
+    icon: path.join(__dirname, 'icon.ico'),
+    title: 'Tarjiman Desktop',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  controlWin.setMenuBarVisibility(false);
+  controlWin.loadFile('control.html');
+
+  controlWin.on('close', (evt) => {
+    if (!isQuitting) {
+      evt.preventDefault();
+      controlWin.hide();
+    }
+  });
+
+  controlWin.on('closed', () => { controlWin = null; });
+}
+
 function saveBounds() {
   if (overlayWin) store.set('winBounds', overlayWin.getBounds());
 }
@@ -57,13 +88,15 @@ function createTray() {
   const icon = nativeImage.createEmpty();
   tray = new Tray(icon.isEmpty() ? path.join(__dirname, 'icon.ico') : icon);
   const menu = Menu.buildFromTemplate([
-    { label: 'إظهار/إخفاء (Ctrl+Alt+T)', click: toggleShow },
+    { label: 'فتح لوحة التحكم', click: createControlWindow },
+    { label: 'إظهار/إخفاء الترجمة (Ctrl+Alt+T)', click: toggleShow },
     { label: 'تجاوز النقر (Ctrl+Alt+C)', click: toggleClickThrough },
     { type: 'separator' },
-    { label: 'خروج', click: () => app.quit() }
+    { label: 'خروج', click: () => { isQuitting = true; app.quit(); } }
   ]);
   tray.setToolTip('Tarjiman Desktop');
   tray.setContextMenu(menu);
+  tray.on('click', createControlWindow);
 }
 
 function toggleShow() {
@@ -76,10 +109,12 @@ function toggleClickThrough() {
   clickThrough = !clickThrough;
   overlayWin.setIgnoreMouseEvents(clickThrough, { forward: true });
   overlayWin.webContents.send('click-through-changed', clickThrough);
+  if (controlWin) controlWin.webContents.send('click-through-changed', clickThrough);
 }
 
 app.whenReady().then(() => {
   createOverlay();
+  createControlWindow();
   createTray();
 
   globalShortcut.register('Control+Alt+T', toggleShow);
@@ -87,15 +122,18 @@ app.whenReady().then(() => {
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createOverlay();
+    createControlWindow();
   });
 });
 
 app.on('window-all-closed', () => {
-  // Keep running via tray even if window closed, unless explicitly quit
+  // Keep running via tray even if windows closed, unless explicitly quitting
   if (process.platform !== 'darwin') {
     // do nothing, stay alive in tray
   }
 });
+
+app.on('before-quit', () => { isQuitting = true; });
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
@@ -110,4 +148,19 @@ ipcMain.handle('get-desktop-source', async () => {
 
 ipcMain.on('set-ignore-mouse-events', (evt, ignore, opts) => {
   if (overlayWin) overlayWin.setIgnoreMouseEvents(ignore, opts || {});
+});
+
+// Control window sends commands (start/stop/set-lang/toggle-click-through)
+ipcMain.on('control-action', (evt, msg) => {
+  if (!msg) return;
+  if (msg.action === 'toggle-click-through') {
+    toggleClickThrough();
+    return;
+  }
+  if (overlayWin) overlayWin.webContents.send('overlay-command', msg);
+});
+
+// Overlay window reports listening status back to the control window
+ipcMain.on('overlay-status', (evt, status) => {
+  if (controlWin) controlWin.webContents.send('control-status-update', status);
 });

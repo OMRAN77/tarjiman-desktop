@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<title>Tarjiman Desktop - لوحة التحكم</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: #1b1b1f;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    box-sizing: border-box;
+  }
+  #wrap {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100%;
+    gap: 22px;
+    padding: 20px;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  #row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  button {
+    background: #2c2c33; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 18px; font-size: 15px; cursor: pointer;
+  }
+  button.active { background: #1f9d55; }
+  select {
+    background: #2c2c33; color: #fff; border: none;
+    border-radius: 8px; font-size: 14px; padding: 10px 12px;
+  }
+  #hint { font-size: 12px; opacity: 0.6; text-align: center; max-width: 340px; }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <h1>Tarjiman Desktop — لوحة التحكم</h1>
+    <div id="row">
+      <button id="btnToggle">▶️ ابدأ الترجمة</button>
+      <select id="targetLang">
+        <option value="ar">AR عربي</option>
+        <option value="en" selected>EN English</option>
+        <option value="fr">FR</option>
+        <option value="es">ES</option>
+        <option value="tr">TR</option>
+        <option value="ur">UR</option>
+        <option value="hi">HI</option>
+        <option value="fa">FA</option>
+      </select>
+      <button id="btnClickThrough">🖱️ تجاوز الماوس</button>
+    </div>
+    <div id="hint">
+      النافذة العائمة فوق الفيديو تعرض النص المترجم فقط. استخدم هذه اللوحة للتحكم بالبدء/الإيقاف واللغة وتجاوز الماوس.
+      يمكنك تكبير/تصغير النافذة العائمة بسحب حوافها.
+    </div>
+  </div>
+  <script src="control.js"></script>
+</body>
+</html>

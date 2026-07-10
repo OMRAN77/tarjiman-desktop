@@ -1,14 +1,11 @@
 const API_URL = 'https://tarjiman-live.vercel.app/api/caption';
 const CHUNK_MS = 1800;
 
-const btnToggle = document.getElementById('btnToggle');
-const btnClickThrough = document.getElementById('btnClickThrough');
-const targetLang = document.getElementById('targetLang');
 const captionText = document.getElementById('captionText');
 
 let isListening = false;
 let sysStream = null;
-let clickThroughOn = false;
+let targetLangValue = 'en';
 
 function getGuestId(){
   let id = localStorage.getItem('tarjimanDesktopGuestId');
@@ -57,7 +54,7 @@ async function sendChunk(blob, mimeType){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         audioBase64, mimeType,
-        targetLang: targetLang.value,
+        targetLang: targetLangValue,
         guestId: getGuestId(),
       }),
     });
@@ -94,6 +91,12 @@ function recordOneChunk(){
   }, CHUNK_MS);
 }
 
+function reportStatus(){
+  if(window.tarjiman && window.tarjiman.sendStatus){
+    window.tarjiman.sendStatus({ listening: isListening });
+  }
+}
+
 async function startListening(){
   try {
     const sourceId = await window.tarjiman.getDesktopSource();
@@ -125,8 +128,7 @@ async function startListening(){
     }
     sysStream = stream;
     isListening = true;
-    btnToggle.textContent = '⏹️ إيقاف';
-    btnToggle.classList.add('active');
+    reportStatus();
     recordOneChunk();
   } catch(e){
     setCaption('تعذر التقاط صوت النظام');
@@ -135,25 +137,16 @@ async function startListening(){
 
 function stopListening(){
   isListening = false;
-  btnToggle.textContent = '▶️ ابدأ';
-  btnToggle.classList.remove('active');
+  reportStatus();
   if(sysStream){ sysStream.getTracks().forEach(t => t.stop()); sysStream = null; }
   setCaption('');
 }
 
-btnToggle.addEventListener('click', () => {
-  if(isListening) stopListening(); else startListening();
-});
-
-btnClickThrough.addEventListener('click', () => {
-  clickThroughOn = !clickThroughOn;
-  window.tarjiman.setIgnoreMouseEvents(clickThroughOn, { forward: true });
-  btnClickThrough.classList.toggle('active', clickThroughOn);
-  btnClickThrough.textContent = clickThroughOn ? '🖱️ تجاوز ✅' : '🖱️ تجاوز';
-});
-
-window.tarjiman.onClickThroughChanged((v) => {
-  clickThroughOn = v;
-  btnClickThrough.classList.toggle('active', v);
-  btnClickThrough.textContent = v ? '🖱️ تجاوز ✅' : '🖱️ تجاوز';
-});
+if(window.tarjiman && window.tarjiman.onControlCommand){
+  window.tarjiman.onControlCommand((msg) => {
+    if(!msg) return;
+    if(msg.action === 'start') startListening();
+    else if(msg.action === 'stop') stopListening();
+    else if(msg.action === 'set-lang') targetLangValue = msg.payload;
+  });
+}
