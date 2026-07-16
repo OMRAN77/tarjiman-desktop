@@ -2,6 +2,14 @@ const { app, BrowserWindow, ipcMain, desktopCapturer, screen, Tray, Menu, global
 const path = require('path');
 const Store = require('electron-store');
 
+// Fix: on some Intel/AMD GPU + driver combos, Electron's GPU compositor
+// renders transparent windows with a solid green rectangle instead of true
+// transparency. Disabling hardware acceleration for the GPU process avoids
+// this rendering bug at the cost of slightly higher CPU usage (negligible
+// for this app, which only renders small text overlays).
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu-compositing');
+
 const store = new Store();
 let overlayWin = null;
 let controlWin = null;
